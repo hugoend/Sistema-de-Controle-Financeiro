@@ -1,0 +1,18 @@
+# Bancos de dados (SQLite e outros)
+*.db
+*.sqlite
+*.sqlite3
+
+# Python - arquivos compilados e cache
+__pycache__/
+*.py[cod]
+*$py.class
+
+# Ambientes virtuais
+venv/
+.venv/
+env/
+bin/
+
+# Variáveis de ambiente e segredos
+.env
