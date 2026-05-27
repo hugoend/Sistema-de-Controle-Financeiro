@@ -58,19 +58,20 @@ def init_db():
                 nome TEXT NOT NULL UNIQUE
             );
 
-            CREATE TABLE IF NOT EXISTS gastos_fixos (
+            CREATE TABLE IF NOT EXISTS recorrencias (
                 id         INTEGER PRIMARY KEY AUTOINCREMENT,
                 descricao  TEXT    NOT NULL,
                 valor      REAL    NOT NULL,
-                categoria  TEXT    NOT NULL
+                categoria  TEXT    NOT NULL,
+                tipo       TEXT    NOT NULL DEFAULT 'despesa'
             );
         """)
         
-        # Migração simples para garantir que a coluna de origem existe em bancos já criados
+        # Migrações para compatibilidade
         try:
             db.execute("ALTER TABLE transacoes ADD COLUMN origem_fixo_id INTEGER")
-        except sqlite3.OperationalError:
-            pass  # Coluna já existe
+            db.execute("ALTER TABLE recorrencias ADD COLUMN tipo TEXT NOT NULL DEFAULT 'despesa'")
+        except sqlite3.OperationalError: pass
 
 
 
@@ -90,11 +91,11 @@ def get_transacoes():
     mes = int(request.args.get('mes', agora.month))
 
     db = get_db()
-    # Sincroniza gastos fixos: Insere no mês atual o que ainda não foi inserido
+    # Sincroniza recorrências (Receitas e Despesas Fixas)
     db.execute("""
         INSERT INTO transacoes (descricao, valor, tipo, categoria, ano, mes, origem_fixo_id)
-        SELECT descricao, valor, 'despesa', categoria, ?, ?, id
-        FROM gastos_fixos
+        SELECT descricao, valor, tipo, categoria, ?, ?, id
+        FROM recorrencias
         WHERE id NOT IN (
             SELECT origem_fixo_id FROM transacoes 
             WHERE ano = ? AND mes = ? AND origem_fixo_id IS NOT NULL
@@ -163,35 +164,35 @@ def get_historico():
     return jsonify([dict(r) for r in rows])
 
 
-# ── Gastos Fixos ─────────────────────────────────────────────
+# ── Recorrências (Fixos) ──────────────────────────────────────
 
-@app.route('/api/gastos-fixos', methods=['GET'])
+@app.route('/api/recorrencias', methods=['GET'])
 def get_gastos_fixos():
     with get_db() as db:
-        rows = db.execute('SELECT * FROM gastos_fixos ORDER BY descricao').fetchall()
+        rows = db.execute('SELECT * FROM recorrencias ORDER BY tipo DESC, descricao').fetchall()
     return jsonify([dict(r) for r in rows])
 
 
-@app.route('/api/gastos-fixos', methods=['POST'])
+@app.route('/api/recorrencias', methods=['POST'])
 def add_gasto_fixo():
     try:
         d = request.get_json()
         db = get_db()
         cur = db.execute(
-            'INSERT INTO gastos_fixos (descricao, valor, categoria) VALUES (?,?,?)',
-            (d['descricao'], float(d['valor']), d['categoria'])
+            'INSERT INTO recorrencias (descricao, valor, categoria, tipo) VALUES (?,?,?,?)',
+            (d['descricao'], float(d['valor']), d['categoria'], d['tipo'])
         )
         db.commit()
-        novo = db.execute('SELECT * FROM gastos_fixos WHERE id=?', (cur.lastrowid,)).fetchone()
+        novo = db.execute('SELECT * FROM recorrencias WHERE id=?', (cur.lastrowid,)).fetchone()
         return jsonify(dict(novo)), 201
     except (ValueError, TypeError, KeyError):
         return jsonify({'erro': 'Dados inválidos'}), 400
 
 
-@app.route('/api/gastos-fixos/<int:gf_id>', methods=['DELETE'])
+@app.route('/api/recorrencias/<int:gf_id>', methods=['DELETE'])
 def del_gasto_fixo(gf_id):
     db = get_db()
-    db.execute('DELETE FROM gastos_fixos WHERE id=?', (gf_id,))
+    db.execute('DELETE FROM recorrencias WHERE id=?', (gf_id,))
     db.commit()
     return jsonify({'ok': True})
 
@@ -263,6 +264,7 @@ def del_membro(m_id):
 # ── Main ─────────────────────────────────────────────────────
 
 if __name__ == '__main__':
-    init_db()
+    with app.app_context():
+        init_db()
     print('\n✅  Finanças da Família rodando em http://localhost:5000\n')
-    app.run(host='0.0.0.0', port=5000, debug=False)
+    app.run(host='0.0.0.0', port=5000, debug=True)

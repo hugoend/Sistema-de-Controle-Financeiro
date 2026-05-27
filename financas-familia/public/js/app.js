@@ -37,13 +37,23 @@ let curSection = 'dashboard';
 // ── Navegação ────────────────────────────────────────────────
 function navTo(sec) {
   document.querySelectorAll('.section').forEach(s => s.classList.remove('active'));
-  document.querySelectorAll('.nav-item').forEach(n => n.classList.remove('active'));
+  const navItems = document.querySelectorAll('.nav-item');
+  navItems.forEach(n => n.classList.remove('active'));
+
   document.getElementById('sec-' + sec).classList.add('active');
-  event.currentTarget.classList.add('active');
+  
+  // Encontra o botão clicado para marcar como ativo
+  navItems.forEach(btn => {
+    if (btn.getAttribute('onclick')?.includes(`'${sec}'`)) {
+      btn.classList.add('active');
+    }
+  });
+
   curSection = sec;
   if (sec === 'historico') renderHistorico();
   if (sec === 'membros')   carregarMembros();
   if (sec === 'orcamentos') renderOrcamentos();
+  if (sec === 'gastos-fixos') loadGastosFixos();
 }
 
 // ── Mês ─────────────────────────────────────────────────────
@@ -339,3 +349,56 @@ function toast(msg) {
 atualizarLabel();
 atualizarSelectCat();
 carregar();
+
+// ── Gastos Fixos ─────────────────────────────────────────────
+async function loadGastosFixos() {
+  atualizarSelectCatFixo();
+
+  const dados = await api('/api/recorrencias');
+  const el = document.getElementById('gfList');
+  if (!dados.length) { el.innerHTML = emptyState('Nenhuma recorrência cadastrada.'); return; }
+  
+  el.innerHTML = dados.map(g => `
+    <div class="tx-item">
+      <span class="tx-dot" style="background:${catColor(g.tipo, g.categoria)}"></span>
+      <div class="tx-info">
+        <div class="tx-desc">${esc(g.descricao)}</div>
+        <div class="tx-meta">${g.categoria} · ${g.tipo === 'receita' ? 'Receita' : 'Despesa'}</div>
+      </div>
+      <span class="tx-val ${g.tipo}">${g.tipo === 'receita' ? '+' : '-'}${fmt(g.valor)}</span>
+      <button class="tx-del" onclick="delGastoFixo(${g.id})" title="Excluir">×</button>
+    </div>
+  `).join('');
+}
+
+function atualizarSelectCatFixo() {
+  const tipo = document.getElementById('gfTipo').value;
+  const sel = document.getElementById('gfCat');
+  if (sel) sel.innerHTML = CATS[tipo].map(c => `<option>${c.n}</option>`).join('');
+}
+
+async function addGastoFixo() {
+  const desc = document.getElementById('gfDesc').value.trim();
+  const valor = parseFloat(document.getElementById('gfValor').value);
+  const cat = document.getElementById('gfCat').value;
+  const tipo = document.getElementById('gfTipo').value;
+
+  if (!desc || isNaN(valor) || valor <= 0) { toast('Preencha descrição e valor corretamente.'); return; }
+  
+  await api('/api/recorrencias', { 
+    method: 'POST', 
+    body: { descricao: desc, valor, categoria: cat, tipo: tipo } 
+  });
+  
+  document.getElementById('gfDesc').value = '';
+  document.getElementById('gfValor').value = '';
+  toast('Recorrência salva!');
+  loadGastosFixos();
+}
+
+async function delGastoFixo(id) {
+  if (!confirm('Excluir esta recorrência?')) return;
+  await api(`/api/recorrencias/${id}`, { method: 'DELETE' });
+  toast('Removido com sucesso!');
+  loadGastosFixos();
+}

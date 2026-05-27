@@ -31,7 +31,7 @@
         <span class="nav-icon">🎯</span><span class="nav-label">Orçamentos</span>
       </button>
       <button class="nav-item" onclick="navTo('gastos-fixos')">
-        <span class="nav-icon">🔁</span><span class="nav-label">Gastos Fixos</span>
+        <span class="nav-icon">🔁</span><span class="nav-label">Recorrências</span>
       </button>
       <button class="nav-item" onclick="navTo('historico')">
         <span class="nav-icon">📈</span><span class="nav-label">Histórico</span>
@@ -161,13 +161,20 @@
     <!-- GASTOS FIXOS -->
     <div class="section" id="sec-gastos-fixos">
       <div class="page-header">
-        <h2>Gastos Fixos</h2>
-        <p>Despesas que se repetem todos os meses automaticamente</p>
+        <h2>Recorrências</h2>
+        <p>Receitas e Despesas que se repetem todos os meses automaticamente</p>
       </div>
 
       <div class="form-card">
-        <h3>Novo gasto recorrente</h3>
+        <h3>Nova recorrência</h3>
         <div class="form-row">
+          <div class="form-group">
+            <label>Tipo</label>
+            <select id="gfTipo" onchange="atualizarSelectCatFixo()">
+              <option value="despesa">⬇ Despesa Fixa</option>
+              <option value="receita">⬆ Receita Fixa</option>
+            </select>
+          </div>
           <div class="form-group" style="flex:3">
             <label>Descrição</label>
             <input type="text" id="gfDesc" placeholder="Ex: Aluguel ou Netflix">
