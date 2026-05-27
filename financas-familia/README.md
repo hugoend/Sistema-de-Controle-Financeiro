@@ -15,6 +15,7 @@ Baseado na lógica do backend (`app.py`), o sistema oferece:
 -   **Gestão de Transações:** Cadastro de receitas e despesas com categorização e data.
 -   **Dashboard Inteligente:** Filtros por mês e ano para análise de fluxo de caixa.
 -   **Controle de Orçamentos:** Definição de limites mensais por categoria com atualização em tempo real (*Upsert logic*).
+-   **Gastos Fixos (Automação):** Cadastro de despesas recorrentes que são geradas automaticamente a cada mês.
 -   **Histórico Comparativo:** Visualização dos últimos 6 meses para acompanhamento de tendências.
 -   **Gestão de Membros:** Cadastro de membros da família para personalização dos lançamentos.
 -   **Persistência Robusta:** Utiliza SQLite com modo `WAL` (Write-Ahead Logging) para melhor performance e integridade de dados.

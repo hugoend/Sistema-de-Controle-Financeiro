@@ -30,6 +30,9 @@
       <button class="nav-item" onclick="navTo('orcamentos')">
         <span class="nav-icon">🎯</span><span class="nav-label">Orçamentos</span>
       </button>
+      <button class="nav-item" onclick="navTo('gastos-fixos')">
+        <span class="nav-icon">🔁</span><span class="nav-label">Gastos Fixos</span>
+      </button>
       <button class="nav-item" onclick="navTo('historico')">
         <span class="nav-icon">📈</span><span class="nav-label">Histórico</span>
       </button>
@@ -153,6 +156,37 @@
         </div>
       </div>
       <div class="orc-list" id="orcList"></div>
+    </div>
+
+    <!-- GASTOS FIXOS -->
+    <div class="section" id="sec-gastos-fixos">
+      <div class="page-header">
+        <h2>Gastos Fixos</h2>
+        <p>Despesas que se repetem todos os meses automaticamente</p>
+      </div>
+
+      <div class="form-card">
+        <h3>Novo gasto recorrente</h3>
+        <div class="form-row">
+          <div class="form-group" style="flex:3">
+            <label>Descrição</label>
+            <input type="text" id="gfDesc" placeholder="Ex: Aluguel ou Netflix">
+          </div>
+          <div class="form-group">
+            <label>Valor (R$)</label>
+            <input type="number" id="gfValor" placeholder="0,00" min="0" step="0.01">
+          </div>
+          <div class="form-group">
+            <label>Categoria</label>
+            <select id="gfCat"></select>
+          </div>
+          <div class="form-group" style="flex:0 0 auto">
+            <label>&nbsp;</label>
+            <button class="btn btn-primary" onclick="addGastoFixo()">+ Salvar</button>
+          </div>
+        </div>
+      </div>
+      <div class="tx-list" id="gfList"></div>
     </div>
 
     <!-- HISTÓRICO -->
